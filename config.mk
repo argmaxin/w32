@@ -1,3 +1,8 @@
+# (C) 2026 argmaxin
+# Distributed under the terms of MIT license.
+# Check LICENSE.MIT.txt accompanying this source
+# for additional information.
+
 # Toolchain
 CC=$$(command -v clang >/dev/null 2>&1 && echo "clang" || echo "cc") 
 LD=$(CC)

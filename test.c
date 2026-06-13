@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: CC0-1.0 */
 #define _POSIX_C_SOURCE 199309L
 
 #include "test.h"

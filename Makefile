@@ -1,3 +1,8 @@
+# (C) 2026 argmaxin
+# Distributed under the terms of MIT license.
+# Check LICENSE.MIT.txt accompanying this source
+# for additional information.
+
 .POSIX:
 
 include config.mk

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MIT */
 #if !defined(W32_H)
 #define W32_H
 #include <stddef.h>
