@@ -2,7 +2,13 @@
 #if !defined(W32_H)
 #define W32_H
 #include <stddef.h>
+#if defined(_WIN32)
+#define W32_API __declspec(dllimport) extern
+#elif defined(__has_attribute) && __has_attribute(__visibility__)
+#define W32_API __attribute__((__visibility__("default"))) extern
+#else
 #define W32_API extern
+#endif 
 
 /*
  * WAX32 Implementation.
