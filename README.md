@@ -11,7 +11,7 @@ Please do not rely on it for reliable execution.
 
 ## Disclaimer - AI USAGE
 
-The following files have been generated via assistance of AI models:
+The following files have been generated/augmented via assistance of AI models:
 - `test.c`
 - `test.h`
 

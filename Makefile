@@ -30,7 +30,7 @@ static: object
 shared: object
 	$(LD) $(ONAME) $(LOUTFLAGS) $(BASEFLAGS) $(LDFLAGS)
 
-smt-setup: $(VENV_DIR)
+smt-setup:
 	$(VENV_SETUP)
 
 smt: smt.py
@@ -44,4 +44,3 @@ clean:
 	rm -rf $(FNAME)
 	rm -rf $(TNAME)
 	rm -rf $(VENV_DIR)
-	rm -rf z3-solver

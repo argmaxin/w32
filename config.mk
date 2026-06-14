@@ -47,9 +47,9 @@ FUZZ_SOURCES=w32.c fuzz.c
 
 # SMT (Optional)
 PYTHON=python3
-PYTHON_EXE=$$(command -v $(PYTHON) >/dev/null 2>1 && echo "$(PYTHON)" || echo "VENV ERR" && exit 1)
+PYTHON_EXE=$$(command -v $(PYTHON) >/dev/null 2>&1 && echo "$(PYTHON)" || echo "VENV ERR" && exit 1)
 VENV_DIR = venv
 VENV_INIT =  source $(VENV_DIR)/bin/activate 
-VENV_SETUP = $(PYTHON_EXE) -m venv $(VENV_DIR) && $(VENV_INIT) && $(PYTHON) -m venv z3-solver
+VENV_SETUP = $(PYTHON_EXE) -m venv $(VENV_DIR) && $(VENV_INIT) && $(PYTHON) -m pip install z3-solver
 VENV_RUN =  $(VENV_INIT) && $(PYTHON_EXE) smt.py
 
