@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: MIT */
+
 /******************************************************************************\
 * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+= *
 * +=                                                                        += *
@@ -30,79 +31,97 @@
 \******************************************************************************/
 
 #include "w32.h"
-#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#define BUF_SIZE 3840
+#define WAX_VER "1.0.0"
 
-volatile size_t g_sink = 0;
 
-int main(void) {
-  const size_t MB = 1024 * 1024;
+const char HELP_TXT[] =
+    "wax32 encoder/decoder version: " WAX_VER ".\n"
+    "(C) argmaxin 2026\n"
+    "Licensed under the terms of MIT License.\n"
+    "\n"
+    "Usage: wax32 [OPTION]... [FILE]\n"
+    "WAX32 encode or decode FILE (or standard input), to standard output.\n"
+    "\n"
+    "When no FILE is provided, or if FILE is '-', read stdin.\n"
+    "\n"
+    "\t-d,--decode\tdecode data\n"
+    "\t-h,--help\tshows this page\n";
 
-  const size_t ALIGNMENT = 320;
-  const size_t payload_size = (2048 * MB / ALIGNMENT) * ALIGNMENT;
-  const int iterations = 10;
 
-  size_t enc_max_len = ((payload_size * 8) / 5) + 64;
-  size_t dec_max_len = payload_size + 64;
+static int do_encode(FILE *in, FILE *out) {
+  char in_buf[BUF_SIZE];
+  char out_buf[((BUF_SIZE * 8) / 5) + 64];
+  size_t read_len;
 
-  char *raw_data = (char *)malloc(payload_size);
-  char *enc_data = (char *)malloc(enc_max_len);
-  char *dec_data = (char *)malloc(dec_max_len);
+  while ((read_len = fread(in_buf, 1, BUF_SIZE, in)) > 0) {
+    size_t src_len = read_len;
+    size_t dst_len = sizeof(out_buf);
 
-  if (!raw_data || !enc_data || !dec_data) {
-    return 1;
+    if (w32enc(in_buf, &src_len, out_buf, &dst_len) != 0) {
+      fprintf(stderr, "Error: Encoding failed\n");
+      return 1;
+    }
+
+    if (fwrite(out_buf, 1, dst_len, out) != dst_len) {
+      return 1;
+    }
   }
+  return 0;
+}
 
-  int total_threads = 1;
-#ifdef _OPENMP
-  total_threads = omp_get_max_threads();
-#endif
 
-  size_t chunk_in_base = (payload_size / total_threads / ALIGNMENT) * ALIGNMENT;
-  if (chunk_in_base == 0)
-    chunk_in_base = ALIGNMENT;
-#ifdef _OPENMP
-#pragma omp parallel reduction(+ : g_sink)
-#endif
-  {
-    int t = 0;
-#ifdef _OPENMP
-    t = omp_get_thread_num();
-#endif
+static int do_decode(FILE *in, FILE *out) {
+  char in_buf[BUF_SIZE];
+  char out_buf[BUF_SIZE + 64];
+  size_t read_len;
 
-    size_t src_off = t * chunk_in_base;
-    size_t src_len =
-        (t == total_threads - 1) ? (payload_size - src_off) : chunk_in_base;
+  while ((read_len = fread(in_buf, 1, BUF_SIZE, in)) > 0) {
+    size_t src_len = read_len;
+    size_t dst_len = sizeof(out_buf);
 
-    size_t dst_off = (src_off / 5) * 8;
-    size_t dst_len = (src_len / 5) * 8;
+    if (w32dec(in_buf, &src_len, out_buf, &dst_len) != 0) {
+      fprintf(stderr, "Error: Invalid WAX32 payload\n");
+      return 1;
+    }
 
-    size_t dec_src_off = dst_off;
-    size_t dec_src_len = dst_len;
-    size_t dec_dst_off = src_off;
-    size_t dec_dst_len = src_len;
+    if (fwrite(out_buf, 1, dst_len, out) != dst_len) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
-    for (int iter = 0; iter < iterations; iter++) {
-      size_t s_len = src_len;
-      size_t d_len = dst_len + 64;
 
-      w32enc(raw_data + src_off, &s_len, enc_data + dst_off, &d_len);
-      g_sink += d_len;
+int main(int argc, char **argv) {
+  int decode_mode = 0;
+  FILE *input = stdin;
 
-      size_t ds_len = dec_src_len;
-      size_t dd_len = dec_dst_len + 64;
-
-      w32dec(enc_data + dec_src_off, &ds_len, dec_data + dec_dst_off, &dd_len);
-      g_sink += dd_len;
+  if (argc > 1) {
+    if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
+      printf(HELP_TXT);
+      return 0;
+    }
+    if (!strcmp(argv[1], "-d") || !strcmp(argv[1], "--decode")) {
+      decode_mode = 1;
+      if (argc > 2 && strcmp(argv[2], "-")) {
+        input = fopen(argv[2], "rb");
+      }
+    } else if (strcmp(argv[1], "-")) {
+      input = fopen(argv[1], "rb");
     }
   }
 
-  free(raw_data);
-  free(enc_data);
-  free(dec_data);
+  if (!input) {
+    fprintf(stderr, "Error: Cannot open input file\n");
+    return 1;
+  }
 
-  return (g_sink == 0) ? 1 : 0;
+  if (decode_mode)
+    return do_decode(input, stdout);
+    
+  return do_encode(input, stdout);
 }

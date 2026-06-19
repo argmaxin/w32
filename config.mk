@@ -10,8 +10,10 @@ AR=ar
 
 ONAME=w32.o
 BNAME=w32b.exe  # for ease of .gitignore
-TNAME=w32t.exe # ^
-FNAME=w32f.exe # ^
+TNAME=w32t.exe  # ^
+FNAME=w32f.exe  # ^
+ENAME=wax32.exe # ^
+MPNAM=w32mp.exe # ^
 LNAME=libw32.so
 ANAME=libw32.a
 
@@ -19,7 +21,7 @@ ANAME=libw32.a
 BASEFLAGS=-Wall -Wextra -pedantic -ansi
 COMPFLAGS=-c -fPIC -fno-stack-protector
 TESTFLAGS= -std=c99
-BMRKFLAGS= -fno-stack-protector
+BMRKFLAGS= -fno-stack-protector -std=c99
 FUZZFLAGS= -fsanitize=fuzzer,address,undefined 
 LINKFLAGS=-Wl,--as-needed,-z,now,-z,relro,-z,defs
 
@@ -31,6 +33,8 @@ AOUTFLAGS=rcs $(ANAME)
 TOUTFLAGS=-o $(TNAME)
 BOUTFLAGS=-o $(BNAME)
 FOUTFLAGS=-o $(FNAME)
+EOUTFLAGS=-o $(ENAME)
+MPBOUTFLAGS=-o $(MPNAM)
 
 # Invocation
 CFLAGS= -march=x86-64 -O2 $(COMPFLAGS)
@@ -38,12 +42,14 @@ TFLAGS= -march=x86-64 -O2 $(TESTFLAGS)
 BFLAGS= -march=x86-64 -O2 $(BMRKFLAGS)
 ARFLAGS = 
 LDFLAGS = -shared $(LINKFLAGS) 
+OMPBFLAGS=$(BFLAGS) -fopenmp
 
 # Project
 COMP_SOURCES=w32.c
 TEST_SOURCES=w32.c tst.c test.c
 BMRK_SOURCES=w32.c bench.c
 FUZZ_SOURCES=w32.c fuzz.c
+EXEC_SOURCES=w32.c main.c
 
 # SMT (Optional)
 PYTHON=python3

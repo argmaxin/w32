@@ -7,7 +7,7 @@
 
 include config.mk
 
-all: shared static bench test fuzz
+all: shared static bench bench-mp exe test fuzz
 
 .SUFFIXES: .c
 .SUFFIXES: .py
@@ -20,6 +20,12 @@ fuzz: $(FUZZ_SOURCES)
 
 bench: $(BMRK_SOURCES)
 	$(CC) $(BMRK_SOURCES) $(BOUTFLAGS) $(BASEFLAGS) $(BFLAGS)
+
+exe: $(EXEC_SOURCES)
+	$(CC) $(EXEC_SOURCES) $(EOUTFLAGS) $(BASEFLAGS) $(EFLAGS)
+
+bench-mp: $(BMRK_SOURCES)
+	$(CC) $(BMRK_SOURCES) $(MPBOUTFLAGS) $(BASEFLAGS) $(OMPBFLAGS)
 
 object: $(COMP_SOURCES)
 	$(CC) $(COMP_SOURCES) $(OUTFLAGS) $(BASEFLAGS) $(CFLAGS)
@@ -41,6 +47,7 @@ clean:
 	rm -rf $(ANAME) 
 	rm -rf $(LNAME)
 	rm -rf $(BNAME)
+	rm -rf $(ENAME)
 	rm -rf $(FNAME)
 	rm -rf $(TNAME)
-	rm -rf $(VENV_DIR)
+	rm -rf $(MPNAM)
